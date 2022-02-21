@@ -3,7 +3,6 @@ from turtle import distance
 
 
 class InfoMessage:
-    # TODO: Не забыть убрать неправильный return
     """Информационное сообщение о тренировке."""
     def __init__(self, training_type: str,
                 duration: float,
@@ -55,7 +54,6 @@ class Training:
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
-        # info = InfoMessage(self)
         training_type = ''
         if(type(self) == Swimming):
             training_type = 'SWM'
@@ -66,7 +64,7 @@ class Training:
 
         info = InfoMessage(training_type, self.duration, self.get_distance(), self.get_mean_speed(), self.get_spent_calories())
 
-        return info.get_message()
+        return info
 
 
 class Running(Training):
@@ -81,7 +79,8 @@ class Running(Training):
         """Получить количество затраченных калорий."""
         coeff_calorie_1 = 18
         coeff_calorie_2 = 20
-        calories = (coeff_calorie_1 * self.get_mean_speed() - coeff_calorie_2) * self.weight / self.M_IN_KM * self.duration
+        time_coeff = 60
+        calories = (coeff_calorie_1 * self.get_mean_speed() - coeff_calorie_2) * self.weight / self.M_IN_KM * self.duration * time_coeff
         return calories
 
 class SportsWalking(Training):
@@ -99,7 +98,8 @@ class SportsWalking(Training):
         coeff_calorie_1 = 0.035
         coeff_calorie_2 = 2
         coeff_calorie_3 = 0.029
-        calories = (coeff_calorie_1 * self.weight + (self.get_mean_speed()**coeff_calorie_2 // self.height) * coeff_calorie_3 * self.weight) * self.duration
+        time_coeff = 60
+        calories = (coeff_calorie_1 * self.weight + (self.get_mean_speed()**coeff_calorie_2 // self.height) * coeff_calorie_3 * self.weight) * self.duration * time_coeff
         return calories
 
 class Swimming(Training):
@@ -117,7 +117,8 @@ class Swimming(Training):
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость движения."""
-        speed = self.lenght_pool * self.count_pool / self.M_IN_KM / self.duration
+        time_coeff = 60
+        speed = self.lenght_pool * self.count_pool / self.M_IN_KM / self.duration 
         return speed
 
     def get_spent_calories(self) -> float:
@@ -145,7 +146,8 @@ def read_package(workout_type: str, data: list) -> Training:
 
 def main(training: Training) -> None:
     """Главная функция."""
-    print(training.show_training_info())
+    info = training.show_training_info()
+    print(info.get_message())
 
 if __name__ == '__main__':
     packages = [
