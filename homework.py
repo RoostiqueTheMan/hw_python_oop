@@ -1,22 +1,15 @@
-# from gc import set_debug
-# from turtle import distance
+from dataclasses import dataclass
+from typing import List
 
 
+@dataclass
 class InfoMessage:
     """Информационное сообщение о тренировке."""
-
-    def __init__(self,
-                 training_type: str,
-                 duration: float,
-                 distance: float,
-                 speed: float,
-                 calories: float
-                 ) -> None:
-        self.training_type = training_type
-        self.duration = duration
-        self.distance = distance
-        self.speed = speed
-        self.calories = calories
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
 
     def get_message(self) -> str:
         return (f'Тип тренировки: {self.training_type}; '
@@ -30,6 +23,7 @@ class Training:
     """Базовый класс тренировки."""
     LEN_STEP = 0.65
     M_IN_KM = 1000
+    TIME_COEFF = 60
 
     def __init__(self,
                  action: int,
@@ -50,7 +44,7 @@ class Training:
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        pass
+        raise NotImplementedError()
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
@@ -63,28 +57,25 @@ class Training:
 
 class Running(Training):
     """Тренировка: бег."""
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float
-                 ) -> None:
-        super().__init__(action, duration, weight)
+    COEFF_CALORIE_1 = 18
+    COEFF_CALORIE_2 = 20
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        coeff_calorie_1 = 18
-        coeff_calorie_2 = 20
-        time_coeff = 60
-        return ((coeff_calorie_1
+        return ((self.COEFF_CALORIE_1
                 * self.get_mean_speed()
-                - coeff_calorie_2)
+                - self.COEFF_CALORIE_2)
                 * self.weight
                 / self.M_IN_KM
                 * self.duration
-                * time_coeff)
+                * self.TIME_COEFF)
 
 
 class SportsWalking(Training):
+    COEFF_CALORIE_1 = 0.035
+    COEFF_CALORIE_2 = 2
+    COEFF_CALORIE_3 = 0.029
+
     """Тренировка: спортивная ходьба."""
     def __init__(self, action: int,
                  duration: float,
@@ -93,21 +84,16 @@ class SportsWalking(Training):
                  ) -> None:
         super().__init__(action, duration, weight)
         self.height = height
-        self.name = 'SportsWalking'
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        coeff_calorie_1 = 0.035
-        coeff_calorie_2 = 2
-        coeff_calorie_3 = 0.029
-        time_coeff = 60
-        return ((coeff_calorie_1
+        return ((self.COEFF_CALORIE_1
                 * self.weight
-                + (self.get_mean_speed()**coeff_calorie_2 // self.height)
-                * coeff_calorie_3
+                + (self.get_mean_speed()**self.COEFF_CALORIE_2 // self.height)
+                * self.COEFF_CALORIE_3
                 * self.weight)
                 * self.duration
-                * time_coeff)
+                * self.TIME_COEFF)
 
 
 class Swimming(Training):
@@ -123,7 +109,6 @@ class Swimming(Training):
         super().__init__(action, duration, weight)
         self.lenght_pool = length_pool
         self.count_pool = count_pool
-        self.name = 'Swimming'
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость движения."""
@@ -141,14 +126,15 @@ class Swimming(Training):
         return calories
 
 
-def read_package(workout_type: str, data: list) -> Training:
+def read_package(workout_type: str, data: List[int]) -> Training:
     """Прочитать данные полученные от датчиков."""
-    if(workout_type == 'SWM'):
-        return Swimming(*data)
-    elif(workout_type == 'RUN'):
-        return Running(*data)
-    elif(workout_type == 'WLK'):
-        return SportsWalking(*data)
+    workout_types = {
+        'SWM': Swimming,
+        'RUN': Running,
+        'WLK': SportsWalking
+    }
+    if workout_type in workout_types:
+        return workout_types[workout_type](*data)
 
 
 def main(training: Training) -> None:
